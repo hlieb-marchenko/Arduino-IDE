@@ -1,0 +1,29 @@
+{
+  "": {
+    "swift-dependencies": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/primary.swiftdeps"
+  },
+  "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/AppState.swift": {
+    "dependencies": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/AppState.d",
+    "object": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/AppState.swift.o",
+    "swiftmodule": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/AppState~partial.swiftmodule",
+    "swift-dependencies": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/AppState.swiftdeps",
+    "diagnostics": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/AppState.dia"  },
+  "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoIDEApp.swift": {
+    "dependencies": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ArduinoIDEApp.d",
+    "object": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ArduinoIDEApp.swift.o",
+    "swiftmodule": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ArduinoIDEApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ArduinoIDEApp.swiftdeps",
+    "diagnostics": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ArduinoIDEApp.dia"  },
+  "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/CodeEditorView.swift": {
+    "dependencies": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/CodeEditorView.d",
+    "object": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/CodeEditorView.swift.o",
+    "swiftmodule": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/CodeEditorView~partial.swiftmodule",
+    "swift-dependencies": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/CodeEditorView.swiftdeps",
+    "diagnostics": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/CodeEditorView.dia"  },
+  "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ContentView.swift": {
+    "dependencies": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView.d",
+    "object": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView.swift.o",
+    "swiftmodule": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView.swiftdeps",
+    "diagnostics": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView.dia"  }
+}

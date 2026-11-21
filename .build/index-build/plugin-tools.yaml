@@ -1,0 +1,47 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "ArduinoIDE-arm64-apple-macosx-debug.module": ["<ArduinoIDE-arm64-apple-macosx-debug.module>"]
+  "PackageStructure": ["<PackageStructure>"]
+  "main": ["<ArduinoIDE-arm64-apple-macosx-debug.module>"]
+  "test": ["<ArduinoIDE-arm64-apple-macosx-debug.module>"]
+default: "main"
+nodes:
+  "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+commands:
+  "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/AppState.swift","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoIDEApp.swift","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/CodeEditorView.swift","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ContentView.swift"]
+    outputs: ["/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/sources"]
+    description: "Write auxiliary file /Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/sources"
+
+  "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"]
+    outputs: ["/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+
+  "<ArduinoIDE-arm64-apple-macosx-debug.module>":
+    tool: phony
+    inputs: ["/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/Modules/ArduinoIDE.swiftmodule"]
+    outputs: ["<ArduinoIDE-arm64-apple-macosx-debug.module>"]
+
+  "C.ArduinoIDE-arm64-apple-macosx-debug.module":
+    tool: shell
+    inputs: ["/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/AppState.swift","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoIDEApp.swift","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/CodeEditorView.swift","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ContentView.swift","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/sources"]
+    outputs: ["/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/Modules/ArduinoIDE.swiftmodule"]
+    description: "Compiling Swift Module 'ArduinoIDE' (4 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","ArduinoIDE","-emit-dependencies","-emit-module","-emit-module-path","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/Modules/ArduinoIDE.swiftmodule","-output-file-map","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/output-file-map.json","-incremental","@/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/sources","-I","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/Modules","-target","arm64-apple-macosx13.0","-incremental","-enable-batch-mode","-serialize-diagnostics","-Onone","-enable-testing","-j8","-DSWIFT_PACKAGE","-DDEBUG","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ModuleCache","-parseable-output","-Xfrontend","-entry-point-function-name","-Xfrontend","ArduinoIDE_main","-swift-version","5","-Xfrontend","-experimental-lazy-typecheck","-Xfrontend","-experimental-skip-all-function-bodies","-Xfrontend","-experimental-allow-module-with-compiler-errors","-Xfrontend","-empty-abi-descriptor","-plugin-path","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX27.2.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-fPIC","-Xcc","-g","-package-name","arduino_ide"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Package.swift","/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+
