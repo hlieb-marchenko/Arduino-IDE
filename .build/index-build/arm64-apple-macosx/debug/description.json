@@ -28,6 +28,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoCLIService.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoIDEApp.swift"
         },
         {
@@ -52,6 +56,7 @@
       "moduleOutputPath" : "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/Modules/ArduinoIDE.swiftmodule",
       "objects" : [
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/AppState.swift.o",
+        "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ArduinoCLIService.swift.o",
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ArduinoIDEApp.swift.o",
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/CodeEditorView.swift.o",
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView.swift.o"
@@ -121,6 +126,7 @@
       "prepareForIndexing" : true,
       "sources" : [
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/AppState.swift",
+        "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoCLIService.swift",
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoIDEApp.swift",
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/CodeEditorView.swift",
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ContentView.swift"
@@ -141,6 +147,7 @@
       "arduino_ide",
       "-c",
       "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/AppState.swift",
+      "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoCLIService.swift",
       "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoIDEApp.swift",
       "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/CodeEditorView.swift",
       "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ContentView.swift",
@@ -232,6 +239,10 @@
         {
           "kind" : "file",
           "name" : "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/AppState.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoCLIService.swift"
         },
         {
           "kind" : "file",
