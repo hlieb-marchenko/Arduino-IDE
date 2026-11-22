@@ -28,6 +28,19 @@ struct ArduinoIDEApp: App {
                 .keyboardShortcut("s", modifiers: .command)
                 .disabled(!appState.hasUnsavedChanges)
             }
+            CommandMenu("Arduino") {
+                Button("Verify Sketch") {
+                    appState.checkSketch()
+                }
+                .keyboardShortcut("r", modifiers: .command)
+                .disabled(appState.runningAction != nil)
+
+                Button("Upload Sketch") {
+                    appState.uploadSketch()
+                }
+                .keyboardShortcut("u", modifiers: .command)
+                .disabled(appState.runningAction != nil)
+            }
         }
     }
 }

@@ -14,6 +14,8 @@ struct SketchFile: Identifiable, Hashable {
 struct ConsoleEntry: Identifiable {
     enum Level {
         case info
+        case success
+        case warning
         case error
     }
 
@@ -30,8 +32,21 @@ final class AppState: ObservableObject {
     @Published var activeFileURL: URL?
     @Published var editorText = ""
     @Published private(set) var consoleEntries: [ConsoleEntry] = []
+    @Published private(set) var boardItems: [BoardItem] = []
+    @Published private(set) var portItems: [PortItem] = []
+    @Published var selectedBoardFQBN = ""
+    @Published var selectedPortAddress = ""
+    @Published private(set) var runningAction: RunningAction?
+    @Published private(set) var isRefreshingDevices = false
+
+    enum RunningAction {
+        case check
+        case upload
+    }
 
     private var savedEditorText = ""
+    private let cliService = ArduinoCLIService()
+    private var cliTask: Task<Void, Never>?
 
     var sketchFolderName: String {
         sketchFolderURL?.lastPathComponent ?? "No Sketch Open"
@@ -43,6 +58,9 @@ final class AppState: ObservableObject {
 
     init() {
         appendConsole("Arduino IDE ready. Open a sketch folder to get started.")
+        cliTask = Task { [weak self] in
+            await self?.refreshDevices()
+        }
     }
 
     func openSketchFolder() {
@@ -99,8 +117,161 @@ final class AppState: ObservableObject {
         )
     }
 
+    func refreshDevices() async {
+        guard !isRefreshingDevices else { return }
+        isRefreshingDevices = true
+        defer { isRefreshingDevices = false }
+
+        let discovery = await cliService.discoverDevices()
+        boardItems = discovery.boards
+        portItems = discovery.ports
+
+        if boardItems.isEmpty == false,
+           boardItems.contains(where: { $0.fqbn == selectedBoardFQBN }) == false {
+            selectedBoardFQBN = boardItems[0].fqbn
+        }
+        if portItems.isEmpty == false,
+           portItems.contains(where: { $0.address == selectedPortAddress }) == false {
+            selectedPortAddress = portItems[0].address
+        }
+
+        if let result = discovery.result {
+            if result.succeeded {
+                appendConsole("Board discovery found \(boardItems.count) board(s) and \(portItems.count) port(s).")
+            } else {
+                appendDiagnosticText(result.stderr.isEmpty ? result.stdout : result.stderr)
+            }
+        }
+    }
+
+    func checkSketch() {
+        guard runningAction == nil else { return }
+        guard saveActiveFile() else { return }
+        guard let sketchFolderURL else {
+            appendConsole("Open an Arduino sketch folder before compiling.", level: .error)
+            return
+        }
+        guard !selectedBoardFQBN.isEmpty else {
+            appendConsole("Select a board (FQBN) before compiling.", level: .error)
+            return
+        }
+
+        runningAction = .check
+        appendConsole("Verifying \(sketchFolderURL.lastPathComponent)…")
+
+        cliTask = Task { [weak self] in
+            guard let self else { return }
+            let result = await cliService.compile(
+                sketchPath: sketchFolderURL.path,
+                fqbn: selectedBoardFQBN
+            ) { [weak self] text, isError in
+                Task { @MainActor in
+                    self?.appendStreamOutput(text, isError: isError)
+                }
+            }
+            runningAction = nil
+            if result.succeeded {
+                appendMemoryUsage(from: result.stdout + "\n" + result.stderr)
+                appendConsole("Verification succeeded.", level: .success)
+            } else {
+                appendDiagnosticText(result.stdout)
+                appendDiagnosticText(result.stderr)
+                appendConsole("Verification failed with exit code \(result.exitCode).", level: .error)
+            }
+        }
+    }
+
+    func uploadSketch() {
+        guard runningAction == nil else { return }
+        guard saveActiveFile() else { return }
+        guard let sketchFolderURL else {
+            appendConsole("Open an Arduino sketch folder before uploading.", level: .error)
+            return
+        }
+        guard !selectedBoardFQBN.isEmpty else {
+            appendConsole("Select a board (FQBN) before uploading.", level: .error)
+            return
+        }
+        guard !selectedPortAddress.isEmpty else {
+            appendConsole("Select a serial port before uploading.", level: .error)
+            return
+        }
+
+        runningAction = .upload
+        appendConsole("Uploading \(sketchFolderURL.lastPathComponent) to \(selectedPortAddress)…")
+
+        cliTask = Task { [weak self] in
+            guard let self else { return }
+            let result = await cliService.upload(
+                sketchPath: sketchFolderURL.path,
+                fqbn: selectedBoardFQBN,
+                port: selectedPortAddress
+            ) { [weak self] text, isError in
+                Task { @MainActor in
+                    self?.appendStreamOutput(text, isError: isError)
+                }
+            }
+            runningAction = nil
+            if result.succeeded {
+                appendConsole("Upload succeeded.", level: .success)
+            } else {
+                appendDiagnosticText(result.stdout)
+                appendDiagnosticText(result.stderr)
+                appendConsole("Upload failed with exit code \(result.exitCode).", level: .error)
+            }
+        }
+    }
+
     func clearConsole() {
         consoleEntries.removeAll()
+    }
+
+    private func appendStreamOutput(_ text: String, isError: Bool) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        appendDiagnosticText(trimmed, forceError: isError)
+    }
+
+    private func appendDiagnosticText(_ text: String, forceError: Bool = false) {
+        let lines = text.components(separatedBy: .newlines)
+        for rawLine in lines {
+            let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !line.isEmpty else { continue }
+
+            let lowercased = line.lowercased()
+            let level: ConsoleEntry.Level
+            if forceError || lowercased.contains("error") || lowercased.contains("fatal") {
+                level = .error
+            } else if lowercased.contains("warning") {
+                level = .warning
+            } else if lowercased.contains("succeeded") || lowercased.contains("successfully") {
+                level = .success
+            } else {
+                level = .info
+            }
+            appendConsole(line, level: level)
+        }
+    }
+
+    private func appendMemoryUsage(from text: String) {
+        let patterns = [
+            #"Sketch uses \d+[^\n]*"#,
+            #"Global variables use \d+[^\n]*"#,
+            #"text data\s*bss\s*dec hex filename"#,
+            #"Maximum is \d+[^\n]*"#
+        ]
+
+        for pattern in patterns {
+            guard let expression = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+                continue
+            }
+            let range = NSRange(text.startIndex..., in: text)
+            for match in expression.matches(in: text, range: range) {
+                if let matchRange = Range(match.range, in: text) {
+                    appendConsole(String(text[matchRange]), level: .info)
+                }
+            }
+        }
     }
 
     private func loadSketchFolder(at url: URL) {
@@ -131,6 +302,9 @@ final class AppState: ObservableObject {
 
             if let firstFile = files.first {
                 selectFile(firstFile)
+            }
+            Task { [weak self] in
+                await self?.refreshDevices()
             }
         } catch {
             appendConsole("Could not open folder: \(error.localizedDescription)", level: .error)

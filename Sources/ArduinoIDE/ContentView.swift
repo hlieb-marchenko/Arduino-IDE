@@ -42,38 +42,71 @@ private struct ActionToolbar: View {
                 .frame(height: 22)
 
             Button {
-                appState.saveActiveFile()
+                appState.checkSketch()
             } label: {
-                Label("Check", systemImage: "checkmark")
+                if appState.runningAction == .check {
+                    ProgressView()
+                        .controlSize(.small)
+                        .frame(width: 16)
+                } else {
+                    Label("Check", systemImage: "checkmark")
+                }
             }
             .buttonStyle(IDEActionButtonStyle(tint: IDEColor.blue))
-            .disabled(true)
-            .help("Arduino CLI compilation will be added in Sprint 3")
+            .disabled(appState.runningAction != nil)
+            .help("Verify with Arduino CLI (⌘R)")
 
             Button {
-                appState.saveActiveFile()
+                appState.uploadSketch()
             } label: {
-                Label("Upload", systemImage: "arrow.right")
+                if appState.runningAction == .upload {
+                    ProgressView()
+                        .controlSize(.small)
+                        .frame(width: 16)
+                } else {
+                    Label("Upload", systemImage: "arrow.right")
+                }
             }
             .buttonStyle(IDEActionButtonStyle(tint: IDEColor.green))
-            .disabled(true)
-            .help("Arduino CLI uploading will be added in Sprint 3")
+            .disabled(appState.runningAction != nil)
+            .help("Upload with Arduino CLI (⌘U)")
 
             Spacer(minLength: 16)
 
-            Picker("Board", selection: .constant("No board selected")) {
-                Text("No board selected").tag("No board selected")
+            Picker("Board", selection: $appState.selectedBoardFQBN) {
+                Text("No board selected").tag("")
+                ForEach(appState.boardItems) { board in
+                    Text(board.name).tag(board.fqbn)
+                }
             }
             .frame(width: 190)
-            .disabled(true)
-            .help("Board discovery will be added in Sprint 3")
+            .help("Board FQBN")
 
-            Picker("Port", selection: .constant("No port selected")) {
-                Text("No port selected").tag("No port selected")
+            Picker("Port", selection: $appState.selectedPortAddress) {
+                Text("No port selected").tag("")
+                ForEach(appState.portItems) { port in
+                    Text(port.address).tag(port.address)
+                }
             }
             .frame(width: 170)
-            .disabled(true)
-            .help("Port discovery will be added in Sprint 3")
+            .help("Serial port")
+
+            Button {
+                Task {
+                    await appState.refreshDevices()
+                }
+            } label: {
+                if appState.isRefreshingDevices {
+                    ProgressView()
+                        .controlSize(.small)
+                        .frame(width: 16)
+                } else {
+                    Image(systemName: "arrow.clockwise")
+                }
+            }
+            .buttonStyle(.plain)
+            .disabled(appState.isRefreshingDevices)
+            .help("Refresh boards and ports")
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
@@ -275,7 +308,7 @@ private struct ConsolePane: View {
                                 Text(entry.timestamp, format: .dateTime.hour().minute().second())
                                     .foregroundStyle(IDEColor.secondaryText)
                                 Text(entry.message)
-                                    .foregroundStyle(entry.level == .error ? IDEColor.error : IDEColor.primaryText)
+                                    .foregroundStyle(consoleColor(for: entry.level))
                                     .textSelection(.enabled)
                             }
                             .font(.system(size: 11, design: .monospaced))
@@ -291,6 +324,19 @@ private struct ConsolePane: View {
                 }
             }
             .background(IDEColor.editor)
+        }
+    }
+
+    private func consoleColor(for level: ConsoleEntry.Level) -> Color {
+        switch level {
+        case .error:
+            return IDEColor.error
+        case .warning:
+            return IDEColor.orange
+        case .success:
+            return IDEColor.green
+        case .info:
+            return IDEColor.primaryText
         }
     }
 }
