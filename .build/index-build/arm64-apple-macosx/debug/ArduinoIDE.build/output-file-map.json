@@ -31,5 +31,11 @@
     "object": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView.swift.o",
     "swiftmodule": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView~partial.swiftmodule",
     "swift-dependencies": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView.swiftdeps",
-    "diagnostics": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView.dia"  }
+    "diagnostics": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView.dia"  },
+  "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/SerialPortManager.swift": {
+    "dependencies": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/SerialPortManager.d",
+    "object": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/SerialPortManager.swift.o",
+    "swiftmodule": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/SerialPortManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/SerialPortManager.swiftdeps",
+    "diagnostics": "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/SerialPortManager.dia"  }
 }

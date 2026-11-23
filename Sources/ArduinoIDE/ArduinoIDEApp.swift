@@ -20,6 +20,11 @@ struct ArduinoIDEApp: App {
                     appState.openSketchFolder()
                 }
                 .keyboardShortcut("o", modifiers: .command)
+                Button("New Sketch File…") {
+                    appState.isNewFileSheetPresented = true
+                }
+                .keyboardShortcut("n", modifiers: .command)
+                .disabled(appState.sketchFolderURL == nil)
             }
             CommandGroup(replacing: .saveItem) {
                 Button("Save") {

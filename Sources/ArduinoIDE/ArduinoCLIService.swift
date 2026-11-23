@@ -72,7 +72,7 @@ final class ArduinoCLIService: ObservableObject {
                 let name = entry.name?.trimmingCharacters(in: .whitespacesAndNewlines)
                 boardMap[fqbn] = BoardItem(
                     fqbn: fqbn,
-                    name: (name?.isEmpty == false ? name : fqbn) ?? fqbn
+                    name: name.flatMap { $0.isEmpty ? nil : $0 } ?? fqbn
                 )
             }
 
@@ -82,7 +82,7 @@ final class ArduinoCLIService: ObservableObject {
                 let label = port.label?.trimmingCharacters(in: .whitespacesAndNewlines)
                 portMap[address] = PortItem(
                     address: address,
-                    label: (label?.isEmpty == false ? label : address) ?? address
+                    label: label.flatMap { $0.isEmpty ? nil : $0 } ?? address
                 )
             }
         }

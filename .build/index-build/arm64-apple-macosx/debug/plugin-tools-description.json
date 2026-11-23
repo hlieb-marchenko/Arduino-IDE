@@ -44,6 +44,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/SerialPortManager.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
         },
         {
@@ -59,7 +63,8 @@
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ArduinoCLIService.swift.o",
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ArduinoIDEApp.swift.o",
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/CodeEditorView.swift.o",
-        "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView.swift.o"
+        "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/ContentView.swift.o",
+        "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/SerialPortManager.swift.o"
       ],
       "otherArguments" : [
         "-target",
@@ -129,7 +134,8 @@
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoCLIService.swift",
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoIDEApp.swift",
         "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/CodeEditorView.swift",
-        "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ContentView.swift"
+        "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ContentView.swift",
+        "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/SerialPortManager.swift"
       ],
       "tempsPath" : "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build",
       "wholeModuleOptimization" : false
@@ -151,6 +157,7 @@
       "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ArduinoIDEApp.swift",
       "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/CodeEditorView.swift",
       "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ContentView.swift",
+      "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/SerialPortManager.swift",
       "-I",
       "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/Modules",
       "-target",
@@ -255,6 +262,10 @@
         {
           "kind" : "file",
           "name" : "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/ContentView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/Sources/ArduinoIDE/SerialPortManager.swift"
         }
       ],
       "outputFilePath" : "/Users/admin/Desktop/Programming.nosync/Arduino/Arduino-IDE/.build/index-build/arm64-apple-macosx/debug/ArduinoIDE.build/sources"

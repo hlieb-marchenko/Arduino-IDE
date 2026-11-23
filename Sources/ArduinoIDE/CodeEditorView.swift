@@ -3,6 +3,7 @@ import SwiftUI
 
 struct CodeEditorView: NSViewRepresentable {
     @Binding var text: String
+    @Binding var requestedLine: Int?
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -70,6 +71,13 @@ struct CodeEditorView: NSViewRepresentable {
         if textView.string != text {
             textView.string = text
             context.coordinator.highlight(textView)
+            (scrollView.verticalRulerView as? LineNumberRulerView)?.needsDisplay = true
+        }
+        if let line = requestedLine {
+            context.coordinator.jump(to: line, in: textView)
+            DispatchQueue.main.async {
+                requestedLine = nil
+            }
         }
     }
 
@@ -96,6 +104,22 @@ struct CodeEditorView: NSViewRepresentable {
             guard replacementString == "\t" else { return true }
             textView.insertText("    ", replacementRange: affectedCharRange)
             return false
+        }
+
+        func jump(to line: Int, in textView: NSTextView) {
+            let source = textView.string as NSString
+            var location = 0
+            if line > 1 {
+                for _ in 1..<line {
+                    let remaining = NSRange(location: location, length: max(0, source.length - location))
+                    let newline = source.range(of: "\n", options: [], range: remaining)
+                    if newline.location == NSNotFound { break }
+                    location = newline.location + 1
+                }
+            }
+            location = min(location, source.length)
+            textView.setSelectedRange(NSRange(location: location, length: 0))
+            textView.scrollRangeToVisible(NSRange(location: location, length: 0))
         }
 
         private func scheduleHighlight(_ textView: NSTextView) {
@@ -165,47 +189,43 @@ private final class LineNumberRulerView: NSRulerView {
             let textContainer = textView.textContainer
         else { return }
 
+        layoutManager.ensureLayout(for: textContainer)
+        let visibleContainerRect = textView.visibleRect.offsetBy(
+            dx: -textView.textContainerOrigin.x,
+            dy: -textView.textContainerOrigin.y
+        )
         let visibleGlyphs = layoutManager.glyphRange(
-            forBoundingRect: textView.visibleRect,
+            forBoundingRect: visibleContainerRect,
             in: textContainer
         )
-        let visibleCharacters = layoutManager.characterRange(
-            forGlyphRange: visibleGlyphs,
-            actualGlyphRange: nil
-        )
         let source = textView.string as NSString
-        let start = min(visibleCharacters.location, source.length)
-        var lineNumber = source.substring(to: start).filter { $0 == "\n" }.count + 1
         let attributes: [NSAttributedString.Key: Any] = [
             .font: EditorPalette.font,
             .foregroundColor: EditorPalette.lineNumber
         ]
 
         layoutManager.enumerateLineFragments(forGlyphRange: visibleGlyphs) {
-            lineRect, _, _, glyphRange, _ in
-            let line = NSRect(
-                x: 0,
-                y: lineRect.minY,
-                width: self.ruleThickness - 8,
-                height: lineRect.height
-            )
-            let label = "\(lineNumber)" as NSString
-            let labelSize = label.size(withAttributes: attributes)
-            label.draw(
-                at: NSPoint(
-                    x: self.ruleThickness - labelSize.width - 8,
-                    y: line.midY - labelSize.height / 2
-                ),
-                withAttributes: attributes
-            )
-
-            let characters = layoutManager.characterRange(
+            lineFragmentRect, _, _, glyphRange, _ in
+            let characterRange = layoutManager.characterRange(
                 forGlyphRange: glyphRange,
                 actualGlyphRange: nil
             )
-            let end = min(characters.location + characters.length, source.length)
-            let fragment = source.substring(with: NSRange(location: characters.location, length: end - characters.location))
-            lineNumber += fragment.filter { $0 == "\n" }.count
+            let characterLocation = min(characterRange.location, source.length)
+            let lineNumber = source.substring(to: characterLocation).filter { $0 == "\n" }.count + 1
+            let label = "\(lineNumber)" as NSString
+            let labelSize = label.size(withAttributes: attributes)
+            let textViewRect = lineFragmentRect.offsetBy(
+                dx: textView.textContainerOrigin.x,
+                dy: textView.textContainerOrigin.y
+            )
+            let rulerRect = textView.convert(textViewRect, to: self)
+            label.draw(
+                at: NSPoint(
+                    x: self.ruleThickness - labelSize.width - 8,
+                    y: rulerRect.midY - labelSize.height / 2
+                ),
+                withAttributes: attributes
+            )
         }
     }
 }

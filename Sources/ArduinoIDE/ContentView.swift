@@ -23,6 +23,10 @@ struct ContentView: View {
         }
         .background(IDEColor.editor)
         .foregroundStyle(IDEColor.primaryText)
+        .sheet(isPresented: $appState.isNewFileSheetPresented) {
+            NewSketchFileSheet()
+                .environmentObject(appState)
+        }
     }
 }
 
@@ -131,6 +135,14 @@ private struct ProjectExplorer: View {
                     .foregroundStyle(IDEColor.secondaryText)
                 Spacer()
                 Button {
+                    appState.isNewFileSheetPresented = true
+                } label: {
+                    Image(systemName: "doc.badge.plus")
+                }
+                .buttonStyle(.plain)
+                .disabled(appState.sketchFolderURL == nil)
+                .help("Create a new sketch file (⌘N)")
+                Button {
                     appState.openSketchFolder()
                 } label: {
                     Image(systemName: "folder.badge.plus")
@@ -161,6 +173,12 @@ private struct ProjectExplorer: View {
                         appState.openSketchFolder()
                     }
                     .buttonStyle(.link)
+                    if appState.sketchFolderURL != nil {
+                        Button("New File…") {
+                            appState.isNewFileSheetPresented = true
+                        }
+                        .buttonStyle(.link)
+                    }
                 }
                 .font(.system(size: 12))
                 .padding(.horizontal, 16)
@@ -188,6 +206,60 @@ private struct ProjectExplorer: View {
             Rectangle()
                 .fill(IDEColor.border)
                 .frame(width: 1)
+        }
+    }
+}
+
+private struct NewSketchFileSheet: View {
+    @EnvironmentObject private var appState: AppState
+    @Environment(\.dismiss) private var dismiss
+    @FocusState private var isNameFieldFocused: Bool
+    @State private var fileName = ""
+    @State private var errorMessage: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Create Sketch File")
+                .font(.headline)
+
+            Text("Add an .ino, .cpp, or .h file to \(appState.sketchFolderName).")
+                .font(.system(size: 12))
+                .foregroundStyle(IDEColor.secondaryText)
+
+            TextField("Example: helpers.cpp", text: $fileName)
+                .textFieldStyle(.roundedBorder)
+                .focused($isNameFieldFocused)
+                .onSubmit(createFile)
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 12))
+                    .foregroundStyle(IDEColor.error)
+            }
+
+            HStack {
+                Spacer()
+                Button("Cancel") {
+                    dismiss()
+                }
+                Button("Create") {
+                    createFile()
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 360)
+        .onAppear {
+            isNameFieldFocused = true
+        }
+    }
+
+    private func createFile() {
+        if let message = appState.createSketchFile(named: fileName) {
+            errorMessage = message
+        } else {
+            dismiss()
         }
     }
 }
@@ -265,7 +337,10 @@ private struct CodeEditorPane: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                CodeEditorView(text: $appState.editorText)
+                CodeEditorView(
+                    text: $appState.editorText,
+                    requestedLine: $appState.requestedEditorLine
+                )
             }
         }
         .background(IDEColor.editor)
@@ -274,22 +349,45 @@ private struct CodeEditorPane: View {
 
 private struct ConsolePane: View {
     @EnvironmentObject private var appState: AppState
+    @State private var selectedTab = BottomTab.output
+    @State private var serialInput = ""
+    @State private var baudRate = 115200
+
+    private enum BottomTab: String, CaseIterable, Identifiable {
+        case output = "OUTPUT"
+        case serial = "SERIAL MONITOR"
+        var id: String { rawValue }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("OUTPUT")
-                    .font(.system(size: 11, weight: .semibold))
-                    .tracking(0.7)
-                    .foregroundStyle(IDEColor.secondaryText)
+                ForEach(BottomTab.allCases) { tab in
+                    Button(tab.rawValue) {
+                        selectedTab = tab
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 11, weight: selectedTab == tab ? .semibold : .regular))
+                    .foregroundStyle(selectedTab == tab ? IDEColor.primaryText : IDEColor.secondaryText)
+                    .padding(.bottom, 2)
+                    .overlay(alignment: .bottom) {
+                        if selectedTab == tab {
+                            Rectangle().fill(IDEColor.blue).frame(height: 2)
+                        }
+                    }
+                }
                 Spacer()
                 Button {
-                    appState.clearConsole()
+                    if selectedTab == .output {
+                        appState.clearConsole()
+                    } else {
+                        appState.serialPortManager.clear()
+                    }
                 } label: {
                     Image(systemName: "trash")
                 }
                 .buttonStyle(.plain)
-                .help("Clear output")
+                .help(selectedTab == .output ? "Clear output" : "Clear serial monitor")
             }
             .padding(.horizontal, 14)
             .frame(height: 34)
@@ -300,31 +398,125 @@ private struct ConsolePane: View {
                     .frame(height: 1)
             }
 
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 5) {
-                        ForEach(appState.consoleEntries) { entry in
-                            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                                Text(entry.timestamp, format: .dateTime.hour().minute().second())
-                                    .foregroundStyle(IDEColor.secondaryText)
-                                Text(entry.message)
-                                    .foregroundStyle(consoleColor(for: entry.level))
-                                    .textSelection(.enabled)
+            if !appState.compilerDiagnostics.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(appState.compilerDiagnostics) { diagnostic in
+                            Button {
+                                appState.jumpToDiagnostic(diagnostic)
+                                selectedTab = .output
+                            } label: {
+                                Label(
+                                    "\(diagnostic.file):\(diagnostic.line)\(diagnostic.column.map { ":\($0)" } ?? "") — \(diagnostic.message)",
+                                    systemImage: diagnostic.level == .warning ? "exclamationmark.triangle" : "xmark.octagon"
+                                )
+                                .lineLimit(1)
                             }
-                            .font(.system(size: 11, design: .monospaced))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .id(entry.id)
+                            .buttonStyle(.plain)
+                            .foregroundStyle(diagnostic.level == .warning ? IDEColor.orange : IDEColor.error)
                         }
                     }
                     .padding(10)
                 }
-                .onChange(of: appState.consoleEntries.count) { _ in
-                    guard let lastEntry = appState.consoleEntries.last else { return }
-                    proxy.scrollTo(lastEntry.id, anchor: .bottom)
-                }
+                .background(IDEColor.panel)
             }
-            .background(IDEColor.editor)
+
+            if selectedTab == .output {
+                outputView
+            } else {
+                serialView
+            }
         }
+    }
+
+    private var outputView: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 5) {
+                    ForEach(appState.consoleEntries) { entry in
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Text(entry.timestamp, format: .dateTime.hour().minute().second())
+                                .foregroundStyle(IDEColor.secondaryText)
+                            Text(entry.message)
+                                .foregroundStyle(consoleColor(for: entry.level))
+                                .textSelection(.enabled)
+                        }
+                        .font(.system(size: 11, design: .monospaced))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .id(entry.id)
+                    }
+                }
+                .padding(10)
+            }
+            .onChange(of: appState.consoleEntries.count) { _ in
+                guard let lastEntry = appState.consoleEntries.last else { return }
+                proxy.scrollTo(lastEntry.id, anchor: .bottom)
+            }
+        }
+        .background(IDEColor.editor)
+    }
+
+    private var serialView: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                Picker("Baud", selection: $baudRate) {
+                    ForEach(appState.serialPortManager.baudRates, id: \.self) { baud in
+                        Text("\(baud)").tag(baud)
+                    }
+                }
+                .frame(width: 110)
+
+                if appState.serialPortManager.isConnected {
+                    Button("Disconnect") {
+                        appState.serialPortManager.disconnect()
+                    }
+                    .buttonStyle(.bordered)
+                } else {
+                    Button("Connect") {
+                        appState.serialPortManager.baudRate = baudRate
+                        appState.serialPortManager.connect(port: appState.selectedPortAddress)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(IDEColor.green)
+                    .disabled(appState.selectedPortAddress.isEmpty || appState.runningAction != nil)
+                }
+                Spacer()
+                Circle()
+                    .fill(appState.serialPortManager.isConnected ? IDEColor.green : IDEColor.secondaryText)
+                    .frame(width: 7, height: 7)
+            }
+            .padding(8)
+            .background(IDEColor.panel)
+
+            ScrollView {
+                Text(appState.serialPortManager.serialOutput)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(IDEColor.primaryText)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(10)
+            }
+            .frame(maxHeight: .infinity)
+            .background(IDEColor.editor)
+
+            HStack(spacing: 8) {
+                TextField("Send serial command", text: $serialInput)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit(sendSerialCommand)
+                Button("Send") {
+                    sendSerialCommand()
+                }
+                .disabled(!appState.serialPortManager.isConnected || serialInput.isEmpty)
+            }
+            .padding(8)
+            .background(IDEColor.panel)
+        }
+    }
+
+    private func sendSerialCommand() {
+        guard !serialInput.isEmpty else { return }
+        appState.serialPortManager.send(serialInput)
+        serialInput = ""
     }
 
     private func consoleColor(for level: ConsoleEntry.Level) -> Color {
