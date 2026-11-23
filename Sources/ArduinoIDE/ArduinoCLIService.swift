@@ -45,7 +45,11 @@ final class ArduinoCLIService: ObservableObject {
     func discoverDevices() async -> (boards: [BoardItem], ports: [PortItem], result: CLIResult?) {
         refreshCLIPath()
         guard let cliURL else {
-            let error = CLIResult(exitCode: 127, stdout: "", stderr: "arduino-cli was not found at /opt/homebrew/bin/arduino-cli or /usr/local/bin/arduino-cli.")
+            let error = CLIResult(
+                exitCode: 127,
+                stdout: "",
+                stderr: "arduino-cli was not found. Install it with `brew install arduino-cli`, then refresh device discovery."
+            )
             return ([], [], error)
         }
 
@@ -58,15 +62,25 @@ final class ArduinoCLIService: ObservableObject {
             return ([], [], result)
         }
 
-        let data = Data(result.stdout.utf8)
-        guard let response = try? JSONDecoder().decode(BoardListResponse.self, from: data) else {
-            return ([], [], result)
+        let response: BoardListResponse
+        do {
+            response = try JSONDecoder().decode(BoardListResponse.self, from: Data(result.stdout.utf8))
+        } catch {
+            return (
+                [],
+                [],
+                CLIResult(
+                    exitCode: 1,
+                    stdout: result.stdout,
+                    stderr: "Could not parse Arduino CLI device discovery output: \(error.localizedDescription)"
+                )
+            )
         }
 
         var boardMap: [String: BoardItem] = [:]
         var portMap: [String: PortItem] = [:]
 
-        for entry in response.boards {
+        func addBoard(_ entry: BoardListEntry) {
             if let fqbn = entry.fqbn?.trimmingCharacters(in: .whitespacesAndNewlines),
                !fqbn.isEmpty {
                 let name = entry.name?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -75,16 +89,26 @@ final class ArduinoCLIService: ObservableObject {
                     name: name.flatMap { $0.isEmpty ? nil : $0 } ?? fqbn
                 )
             }
+        }
 
-            if let port = entry.port,
-               let address = port.address?.trimmingCharacters(in: .whitespacesAndNewlines),
+        func addPort(_ port: BoardPort?) {
+            if let address = port?.address?.trimmingCharacters(in: .whitespacesAndNewlines),
                !address.isEmpty {
-                let label = port.label?.trimmingCharacters(in: .whitespacesAndNewlines)
+                let label = port?.label?.trimmingCharacters(in: .whitespacesAndNewlines)
                 portMap[address] = PortItem(
                     address: address,
                     label: label.flatMap { $0.isEmpty ? nil : $0 } ?? address
                 )
             }
+        }
+
+        for entry in response.boards {
+            addBoard(entry)
+            addPort(entry.port)
+        }
+        for detectedPort in response.detectedPorts {
+            addPort(detectedPort.port)
+            detectedPort.matchingBoards.forEach(addBoard)
         }
 
         let boards = boardMap.values.sorted {
@@ -216,11 +240,14 @@ final class ArduinoCLIService: ObservableObject {
     }
 
     private static func detectCLI() -> URL? {
-        let candidates = [
+        let fixedCandidates = [
             "/opt/homebrew/bin/arduino-cli",
             "/usr/local/bin/arduino-cli"
         ]
-        return candidates
+        let pathCandidates = (ProcessInfo.processInfo.environment["PATH"] ?? "")
+            .split(separator: ":")
+            .map { URL(fileURLWithPath: String($0)).appendingPathComponent("arduino-cli").path }
+        return (fixedCandidates + pathCandidates)
             .map(URL.init(fileURLWithPath:))
             .first { FileManager.default.isExecutableFile(atPath: $0.path) }
     }
@@ -228,14 +255,33 @@ final class ArduinoCLIService: ObservableObject {
 
 private struct BoardListResponse: Decodable {
     let boards: [BoardListEntry]
+    let detectedPorts: [DetectedPort]
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        boards = (try? container.decode([BoardListEntry].self, forKey: .boards)) ?? []
+        boards = try container.decodeIfPresent([BoardListEntry].self, forKey: .boards) ?? []
+        detectedPorts = try container.decodeIfPresent([DetectedPort].self, forKey: .detectedPorts) ?? []
     }
 
     private enum CodingKeys: String, CodingKey {
         case boards
+        case detectedPorts = "detected_ports"
+    }
+}
+
+private struct DetectedPort: Decodable {
+    let port: BoardPort?
+    let matchingBoards: [BoardListEntry]
+
+    private enum CodingKeys: String, CodingKey {
+        case port
+        case matchingBoards = "matching_boards"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        port = try container.decodeIfPresent(BoardPort.self, forKey: .port)
+        matchingBoards = try container.decodeIfPresent([BoardListEntry].self, forKey: .matchingBoards) ?? []
     }
 }
 

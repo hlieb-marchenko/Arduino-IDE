@@ -180,18 +180,23 @@ final class AppState: ObservableObject {
         boardItems = discovery.boards
         portItems = discovery.ports
 
-        if !boardItems.isEmpty,
-           !boardItems.contains(where: { $0.fqbn == selectedBoardFQBN }) {
-            selectedBoardFQBN = boardItems[0].fqbn
+        if !boardItems.contains(where: { $0.fqbn == selectedBoardFQBN }) {
+            selectedBoardFQBN = boardItems.first?.fqbn ?? ""
         }
-        if !portItems.isEmpty,
-           !portItems.contains(where: { $0.address == selectedPortAddress }) {
-            selectedPortAddress = portItems[0].address
+        if !portItems.contains(where: { $0.address == selectedPortAddress }) {
+            selectedPortAddress = portItems.first?.address ?? ""
         }
 
         if let result = discovery.result {
             if result.succeeded {
-                appendConsole("Board discovery found \(boardItems.count) board(s) and \(portItems.count) port(s).")
+                if portItems.isEmpty {
+                    appendConsole(
+                        "No serial ports found. Check the board's USB data cable and power, then refresh device discovery.",
+                        level: .warning
+                    )
+                } else {
+                    appendConsole("Board discovery found \(boardItems.count) board(s) and \(portItems.count) port(s).")
+                }
             } else {
                 appendDiagnosticText(result.stderr.isEmpty ? result.stdout : result.stderr)
             }

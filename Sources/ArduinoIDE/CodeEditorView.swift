@@ -17,8 +17,10 @@ struct CodeEditorView: NSViewRepresentable {
         scrollView.drawsBackground = true
         scrollView.backgroundColor = EditorPalette.background
 
-        let textView = NSTextView()
+        let textView = SketchCodeTextView()
         textView.delegate = context.coordinator
+        textView.isEditable = true
+        textView.isSelectable = true
         textView.isRichText = false
         textView.importsGraphics = false
         textView.allowsUndo = true
@@ -42,7 +44,6 @@ struct CodeEditorView: NSViewRepresentable {
         textView.isContinuousSpellCheckingEnabled = false
         textView.isGrammarCheckingEnabled = false
         textView.string = text
-
         if let textContainer = textView.textContainer {
             textContainer.widthTracksTextView = false
             textContainer.containerSize = NSSize(
@@ -67,6 +68,17 @@ struct CodeEditorView: NSViewRepresentable {
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
         context.coordinator.parent = self
+        textView.delegate = context.coordinator
+        textView.isEditable = true
+        textView.isSelectable = true
+
+        if !context.coordinator.hasRequestedInitialFocus {
+            context.coordinator.hasRequestedInitialFocus = true
+            DispatchQueue.main.async { [weak textView] in
+                guard let textView, let window = textView.window else { return }
+                window.makeFirstResponder(textView)
+            }
+        }
 
         if textView.string != text {
             textView.string = text
@@ -83,6 +95,7 @@ struct CodeEditorView: NSViewRepresentable {
 
     final class Coordinator: NSObject, NSTextViewDelegate {
         var parent: CodeEditorView
+        var hasRequestedInitialFocus = false
         private var highlightWorkItem: DispatchWorkItem?
 
         init(_ parent: CodeEditorView) {
@@ -161,6 +174,20 @@ struct CodeEditorView: NSViewRepresentable {
             for match in expression.matches(in: textStorage.string, range: range) {
                 textStorage.addAttribute(.foregroundColor, value: color, range: match.range)
             }
+        }
+    }
+}
+
+private final class SketchCodeTextView: NSTextView {
+    override var acceptsFirstResponder: Bool { true }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        guard let window else { return }
+
+        DispatchQueue.main.async { [weak self, weak window] in
+            guard let self, let window, self.window === window else { return }
+            window.makeFirstResponder(self)
         }
     }
 }

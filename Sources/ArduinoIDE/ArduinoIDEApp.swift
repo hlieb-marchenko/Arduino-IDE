@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 @main
@@ -11,6 +12,12 @@ struct ArduinoIDEApp: App {
                 .environmentObject(appState)
                 .preferredColorScheme(.dark)
                 .frame(minWidth: 900, minHeight: 600)
+                .onAppear {
+                    NSApp.setActivationPolicy(.regular)
+                    NSApp.activate(ignoringOtherApps: true)
+                    (NSApp.keyWindow ?? NSApp.windows.first(where: \.isVisible))?
+                        .makeKeyAndOrderFront(nil)
+                }
         }
         .windowStyle(.titleBar)
         .defaultSize(width: 1200, height: 800)
@@ -31,7 +38,6 @@ struct ArduinoIDEApp: App {
                     appState.saveActiveFile()
                 }
                 .keyboardShortcut("s", modifiers: .command)
-                .disabled(!appState.hasUnsavedChanges)
             }
             CommandMenu("Arduino") {
                 Button("Verify Sketch") {

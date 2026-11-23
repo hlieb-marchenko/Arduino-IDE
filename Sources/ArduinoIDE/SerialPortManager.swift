@@ -26,9 +26,10 @@ final class SerialPortManager: ObservableObject {
         _ = fcntl(descriptor, F_SETFL, 0)
         var settings = termios()
         guard tcgetattr(descriptor, &settings) == 0 else {
+            let message = String(cString: strerror(errno))
             close(descriptor)
             descriptor = -1
-            serialOutput += "[Serial] Could not read serial port settings.\n"
+            serialOutput += "[Serial] Could not read serial port settings: \(message)\n"
             return
         }
 
@@ -46,8 +47,20 @@ final class SerialPortManager: ObservableObject {
             serialOutput += "[Serial] Unsupported baud rate: \(baudRate)\n"
             return
         }
-        cfsetspeed(&settings, speed)
-        tcsetattr(descriptor, TCSANOW, &settings)
+        guard cfsetspeed(&settings, speed) == 0 else {
+            let message = String(cString: strerror(errno))
+            close(descriptor)
+            descriptor = -1
+            serialOutput += "[Serial] Could not set baud rate: \(message)\n"
+            return
+        }
+        guard tcsetattr(descriptor, TCSANOW, &settings) == 0 else {
+            let message = String(cString: strerror(errno))
+            close(descriptor)
+            descriptor = -1
+            serialOutput += "[Serial] Could not configure serial port: \(message)\n"
+            return
+        }
         tcflush(descriptor, TCIFLUSH)
 
         let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: false)

@@ -329,11 +329,13 @@ private struct CodeEditorPane: View {
                     Image(systemName: "curlybraces")
                         .font(.system(size: 28))
                         .foregroundStyle(IDEColor.secondaryText)
-                    Text("Open an Arduino Sketch")
+                    Text("Open a sketch folder and select a source file to edit.")
                         .font(.system(size: 15, weight: .medium))
-                    Text("Choose a sketch folder to browse and view its source files.")
-                        .font(.system(size: 12))
-                        .foregroundStyle(IDEColor.secondaryText)
+                    Button("Open Sketch Folder…") {
+                        appState.openSketchFolder()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(IDEColor.blue)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -341,6 +343,7 @@ private struct CodeEditorPane: View {
                     text: $appState.editorText,
                     requestedLine: $appState.requestedEditorLine
                 )
+                .id(appState.activeFileURL)
             }
         }
         .background(IDEColor.editor)
