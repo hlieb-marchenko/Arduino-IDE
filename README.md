@@ -57,3 +57,5 @@ To build without launching:
 ```bash
 swift build
 ```
+
+Edited: I've also compiled it. So, if you want, you can just open ArduinoIDE.app
