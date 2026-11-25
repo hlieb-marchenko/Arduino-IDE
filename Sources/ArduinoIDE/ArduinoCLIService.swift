@@ -53,28 +53,51 @@ final class ArduinoCLIService: ObservableObject {
             return ([], [], error)
         }
 
-        let result = await execute(
+        async let deviceDiscovery = execute(
             executableURL: cliURL,
             arguments: ["board", "list", "--format", "json"],
             onOutput: nil
         )
-        guard result.succeeded else {
-            return ([], [], result)
+        async let installedBoards = execute(
+            executableURL: cliURL,
+            arguments: ["board", "listall", "--json"],
+            onOutput: nil
+        )
+        let (deviceResult, catalogResult) = await (deviceDiscovery, installedBoards)
+        guard deviceResult.succeeded else {
+            return ([], [], deviceResult)
         }
 
         let response: BoardListResponse
         do {
-            response = try JSONDecoder().decode(BoardListResponse.self, from: Data(result.stdout.utf8))
+            response = try JSONDecoder().decode(BoardListResponse.self, from: Data(deviceResult.stdout.utf8))
         } catch {
             return (
                 [],
                 [],
                 CLIResult(
                     exitCode: 1,
-                    stdout: result.stdout,
+                    stdout: deviceResult.stdout,
                     stderr: "Could not parse Arduino CLI device discovery output: \(error.localizedDescription)"
                 )
             )
+        }
+
+        var catalog: BoardListResponse?
+        var catalogParseError: CLIResult?
+        if catalogResult.succeeded {
+            do {
+                catalog = try JSONDecoder().decode(
+                    BoardListResponse.self,
+                    from: Data(catalogResult.stdout.utf8)
+                )
+            } catch {
+                catalogParseError = CLIResult(
+                    exitCode: 1,
+                    stdout: catalogResult.stdout,
+                    stderr: "Could not parse Arduino CLI installed board list: \(error.localizedDescription)"
+                )
+            }
         }
 
         var boardMap: [String: BoardItem] = [:]
@@ -91,24 +114,30 @@ final class ArduinoCLIService: ObservableObject {
             }
         }
 
-        func addPort(_ port: BoardPort?) {
+        func addPort(_ port: BoardPort?, boardName: String? = nil) {
             if let address = port?.address?.trimmingCharacters(in: .whitespacesAndNewlines),
-               !address.isEmpty {
+               Self.isWiredUSBSerialPort(address) {
                 let label = port?.label?.trimmingCharacters(in: .whitespacesAndNewlines)
+                let deviceName = boardName
+                    ?? label.flatMap { $0.isEmpty || $0 == address ? nil : $0 }
                 portMap[address] = PortItem(
                     address: address,
-                    label: label.flatMap { $0.isEmpty ? nil : $0 } ?? address
+                    label: deviceName.map { "\($0) — \(address)" } ?? address
                 )
             }
         }
 
+        catalog?.boards.forEach(addBoard)
         for entry in response.boards {
             addBoard(entry)
-            addPort(entry.port)
+            addPort(entry.port, boardName: entry.name)
         }
         for detectedPort in response.detectedPorts {
             addPort(detectedPort.port)
-            detectedPort.matchingBoards.forEach(addBoard)
+            detectedPort.matchingBoards.forEach { entry in
+                addBoard(entry)
+                addPort(detectedPort.port, boardName: entry.name)
+            }
         }
 
         let boards = boardMap.values.sorted {
@@ -117,7 +146,13 @@ final class ArduinoCLIService: ObservableObject {
         let ports = portMap.values.sorted {
             $0.address.localizedStandardCompare($1.address) == .orderedAscending
         }
+        let result = catalogParseError ?? (catalogResult.succeeded ? deviceResult : catalogResult)
         return (boards, ports, result)
+    }
+
+    private static func isWiredUSBSerialPort(_ address: String) -> Bool {
+        let name = address.lowercased()
+        return name.contains("usb") || name.contains("slab_usbtouart")
     }
 
     func compile(

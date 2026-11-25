@@ -58,7 +58,7 @@ private struct ActionToolbar: View {
             }
             .buttonStyle(IDEActionButtonStyle(tint: IDEColor.blue))
             .disabled(appState.runningAction != nil)
-            .help("Verify with Arduino CLI (⌘R)")
+            .help("Verify with Arduino CLI without connecting a board (⌘R)")
 
             Button {
                 appState.uploadSketch()
@@ -84,16 +84,16 @@ private struct ActionToolbar: View {
                 }
             }
             .frame(width: 190)
-            .help("Board FQBN")
+            .help("Installed Arduino board used to compile or upload")
 
             Picker("Port", selection: $appState.selectedPortAddress) {
                 Text("No port selected").tag("")
-                ForEach(appState.portItems) { port in
-                    Text(port.address).tag(port.address)
+                ForEach(Array(appState.portItems.enumerated()), id: \.element.id) { index, port in
+                    Text("\(index + 1): \(port.label)").tag(port.address)
                 }
             }
-            .frame(width: 170)
-            .help("Serial port")
+            .frame(width: 210)
+            .help("Wired USB serial port")
 
             Button {
                 Task {

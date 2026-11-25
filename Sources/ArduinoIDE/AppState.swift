@@ -211,7 +211,7 @@ final class AppState: ObservableObject {
             return
         }
         guard !selectedBoardFQBN.isEmpty else {
-            appendConsole("Select a board (FQBN) before compiling.", level: .error)
+            appendConsole("Select an installed board before compiling. A connected device is not required.", level: .error)
             return
         }
 
